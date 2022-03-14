@@ -1,0 +1,83 @@
+* 编写合约Score，⽤于记录学⽣（地址）分数：
+   * 仅有⽼师（⽤modifier权限控制）可以添加和修改学⽣分数
+   * 分数不可以⼤于 100； 
+* 编写合约 Teacher 作为⽼师，通过 IScore 接⼝
+
+
+
+pragma solidity ^0.5.17;
+
+contract Score{
+  //定义一个合约，该合约具有合约地址，地址映射到学生的成绩单
+    address Saddress;
+    mapping(address=>Stu_score) stuRep;
+    Stu_score sr;
+        
+    struct Stu_score{
+      //定义学生成绩单结构体，存入课程列表，每个课程对应一个成绩的映射，len存储课程列表的长度
+        bytes[] course;
+        uint score;
+        mapping(bytes=>uint) cs;
+        uint len;
+    }
+    
+    constructor(address stu_address) public {
+      //构造函数，初始化地址
+        Saddress = stu_address;
+        sr = stuRep[Saddress];
+        sr.len = 0;
+    }
+    
+    function coursescore_add(string memory course, uint score) public {
+      //课程和对应成绩的键值对增加
+        bytes memory b = bytes(course);
+        sr.course.push(b);
+        sr.cs[b] = score;
+        sr.len++;
+    }
+    
+    function getcourseByIndex(uint index) public view returns(string memory){
+      //根据索引值获取课程名
+        if(index <= sr.len){
+            return string(sr.course[index]);
+        }else{
+            return "0x";
+        }
+    }
+    
+    function getscoreBycourse(string memory course) public view returns(uint){
+      //根据课程名获取对应成绩
+        bytes memory b = bytes(course);
+        return sr.cs[b];
+    }
+    
+    function getcourseNo() public view returns(uint){
+      //获取记录里的课程数
+        return sr.len;
+    }
+    
+    function del_course(uint index)public{
+      //删除记录
+        delete sr.cs[sr.course[index]];
+        uint len = sr.len;
+        if(index >= sr.len){
+            return;
+        }
+        
+        for(uint i=index; i < sr.len-1; i++){
+            sr.course[i] = sr.course[i+1];
+        }
+        
+        sr.len--;
+        delete sr.course[len-1];
+    }
+    
+    function mod_score(uint index, uint score)public{
+      //记录修改
+        if(index >= sr.len){
+            return;
+        }
+        sr.cs[sr.course[index]] = score;
+        
+    }
+}
